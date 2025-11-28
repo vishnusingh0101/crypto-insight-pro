@@ -12,7 +12,12 @@ interface NewsAnalysisProps {
 export const NewsAnalysis = ({ coinSymbol }: NewsAnalysisProps) => {
   const { data: news, isLoading } = useQuery({
     queryKey: ['coin-news', coinSymbol],
-    queryFn: () => fetchCoinNews(coinSymbol),
+    queryFn: () => {
+      // Fetch news from the last year
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      return fetchCoinNews(coinSymbol, oneYearAgo);
+    },
     staleTime: 5 * 60 * 1000,
   });
 
@@ -45,7 +50,8 @@ export const NewsAnalysis = ({ coinSymbol }: NewsAnalysisProps) => {
     );
   }
 
-  const newsItems = news?.slice(0, 5) || [];
+  const newsItems = news?.slice(0, 10) || [];
+  const totalNewsCount = news?.length || 0;
   const overallSentiment = newsItems.length > 0 
     ? newsItems.reduce((acc: { [key: string]: number }, item: any) => {
         const sentiment = analyzeSentiment(item.title);
@@ -64,6 +70,9 @@ export const NewsAnalysis = ({ coinSymbol }: NewsAnalysisProps) => {
         <div className="flex items-center gap-2">
           <Newspaper className="w-5 h-5 text-primary" />
           <h2 className="text-xl font-bold text-foreground">News Analysis</h2>
+          <Badge variant="outline" className="ml-2">
+            {totalNewsCount} articles (Last Year)
+          </Badge>
         </div>
         <Badge variant={
           dominantSentiment === "Bullish" ? "default" : 
@@ -78,7 +87,7 @@ export const NewsAnalysis = ({ coinSymbol }: NewsAnalysisProps) => {
         {newsItems.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             <Newspaper className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>No recent news available</p>
+            <p>No recent news available for the last year</p>
           </div>
         ) : (
           newsItems.map((item: any, index: number) => {
@@ -126,7 +135,7 @@ export const NewsAnalysis = ({ coinSymbol }: NewsAnalysisProps) => {
 
       {newsItems.length > 0 && (
         <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
-          <h3 className="font-semibold text-foreground mb-2">Sentiment Overview</h3>
+          <h3 className="font-semibold text-foreground mb-2">Sentiment Overview (Last Year)</h3>
           <div className="flex gap-4 mb-2">
             {Object.entries(overallSentiment).map(([sentiment, count]) => (
               <div key={sentiment} className="flex items-center gap-2">
@@ -140,7 +149,8 @@ export const NewsAnalysis = ({ coinSymbol }: NewsAnalysisProps) => {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Recent news shows {dominantSentiment.toLowerCase()} sentiment towards {coinSymbol.toUpperCase()}.
+            Analysis of {totalNewsCount} news articles from the last year shows {dominantSentiment.toLowerCase()} sentiment towards {coinSymbol.toUpperCase()}.
+            {totalNewsCount > 10 && ` Showing most recent 10 articles.`}
           </p>
         </div>
       )}
