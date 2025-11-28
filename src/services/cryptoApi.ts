@@ -65,15 +65,26 @@ export const fetchCoinDetail = async (coinId: string): Promise<CoinDetail | null
   }
 };
 
-export const fetchCoinNews = async (coinSymbol: string) => {
+export const fetchCoinNews = async (coinSymbol: string, fromDate?: Date) => {
   // Using CryptoPanic free API endpoint (no key needed for basic usage)
   try {
+    // Calculate date range - default to last year if not specified
+    const endDate = new Date();
+    const startDate = fromDate || new Date(endDate.getFullYear() - 1, endDate.getMonth(), endDate.getDate());
+    
     const response = await fetch(
       `https://cryptopanic.com/api/free/v1/posts/?auth_token=free&currencies=${coinSymbol.toUpperCase()}&public=true`
     );
     if (!response.ok) throw new Error('Failed to fetch news');
     const data = await response.json();
-    return data.results || [];
+    
+    // Filter news by date range and return all results
+    const filteredNews = data.results?.filter((item: any) => {
+      const newsDate = new Date(item.created_at);
+      return newsDate >= startDate && newsDate <= endDate;
+    }) || [];
+    
+    return filteredNews;
   } catch (error) {
     console.error('Error fetching news:', error);
     return [];

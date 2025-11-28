@@ -1,6 +1,7 @@
 import { SignalCard } from "@/components/SignalCard";
 import { NewsCard } from "@/components/NewsCard";
 import { MarketOverview } from "@/components/MarketOverview";
+import { CoinSearch } from "@/components/CoinSearch";
 import { Activity, TrendingUp, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -94,6 +95,11 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Search Section */}
+        <div className="mb-8">
+          <CoinSearch />
+        </div>
+
         {/* Stats Banner */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card border border-border rounded-lg p-4">
