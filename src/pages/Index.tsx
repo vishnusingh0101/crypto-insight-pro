@@ -3,46 +3,37 @@ import { NewsCard } from "@/components/NewsCard";
 import { MarketOverview } from "@/components/MarketOverview";
 import { Activity, TrendingUp, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { fetchTopCoins, generateSignal, calculateConfidence, calculateRSI } from "@/services/cryptoApi";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const signals = [
-    {
-      symbol: "BTC/USDT",
-      name: "Bitcoin",
-      signal: "BUY" as const,
-      price: "64,234.50",
-      change: "+2.45",
-      confidence: 85,
-      indicators: { rsi: 58, macd: "Bullish", volume: "High" }
-    },
-    {
-      symbol: "ETH/USDT",
-      name: "Ethereum",
-      signal: "BUY" as const,
-      price: "3,456.78",
-      change: "+1.89",
-      confidence: 78,
-      indicators: { rsi: 62, macd: "Bullish", volume: "Medium" }
-    },
-    {
-      symbol: "SOL/USDT",
-      name: "Solana",
-      signal: "SELL" as const,
-      price: "156.23",
-      change: "-0.87",
-      confidence: 72,
-      indicators: { rsi: 71, macd: "Bearish", volume: "High" }
-    },
-    {
-      symbol: "ADA/USDT",
-      name: "Cardano",
-      signal: "HOLD" as const,
-      price: "0.4523",
-      change: "+0.34",
-      confidence: 65,
-      indicators: { rsi: 52, macd: "Neutral", volume: "Low" }
-    },
-  ];
+  const { data: coins, isLoading } = useQuery({
+    queryKey: ['top-coins'],
+    queryFn: () => fetchTopCoins(20),
+    refetchInterval: 60000, // Refetch every minute
+  });
+
+  const signals = coins?.slice(0, 8).map(coin => {
+    const signal = generateSignal(coin);
+    const confidence = calculateConfidence(coin);
+    const rsi = calculateRSI([coin.low_24h, coin.current_price, coin.high_24h]);
+    
+    return {
+      coinId: coin.id,
+      symbol: `${coin.symbol.toUpperCase()}/USDT`,
+      name: coin.name,
+      signal,
+      price: coin.current_price.toFixed(2),
+      change: coin.price_change_percentage_24h.toFixed(2),
+      confidence,
+      indicators: {
+        rsi: Math.round(rsi),
+        macd: signal === "BUY" ? "Bullish" : signal === "SELL" ? "Bearish" : "Neutral",
+        volume: coin.total_volume > 1e9 ? "High" : coin.total_volume > 5e8 ? "Medium" : "Low"
+      }
+    };
+  }) || [];
 
   const news = [
     {
@@ -138,13 +129,21 @@ const Index = () => {
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-foreground">Trading Signals</h2>
-              <span className="text-sm text-muted-foreground">Updated 1 min ago</span>
+              <span className="text-sm text-muted-foreground">Live from CoinGecko API</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {signals.map((signal) => (
-                <SignalCard key={signal.symbol} {...signal} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-64 w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {signals.map((signal) => (
+                  <SignalCard key={signal.coinId} {...signal} />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
