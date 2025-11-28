@@ -1,8 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface SignalCardProps {
+  coinId: string;
   symbol: string;
   name: string;
   signal: "BUY" | "SELL" | "HOLD";
@@ -16,14 +18,18 @@ interface SignalCardProps {
   };
 }
 
-export const SignalCard = ({ symbol, name, signal, price, change, confidence, indicators }: SignalCardProps) => {
+export const SignalCard = ({ coinId, symbol, name, signal, price, change, confidence, indicators }: SignalCardProps) => {
+  const navigate = useNavigate();
   const isPositive = parseFloat(change) > 0;
   const signalColor = signal === "BUY" ? "success" : signal === "SELL" ? "destructive" : "secondary";
   
   const SignalIcon = signal === "BUY" ? TrendingUp : signal === "SELL" ? TrendingDown : Minus;
 
   return (
-    <Card className="p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10">
+    <Card 
+      className="p-6 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
+      onClick={() => navigate(`/coin/${coinId}`)}
+    >
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
