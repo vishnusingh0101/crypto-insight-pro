@@ -31,9 +31,9 @@ interface SentimentAnalysis {
 
 export const NewsAnalysis = ({ coinSymbol, coinName }: NewsAnalysisProps) => {
   const { data: analysis, isLoading, error } = useQuery<SentimentAnalysis>({
-    queryKey: ['coin-news-analysis', coinSymbol],
+    queryKey: ['coin-news-analysis', coinSymbol, coinName],
     queryFn: async () => {
-      console.log('Fetching advanced news analysis for', coinSymbol);
+      console.log('Fetching advanced news analysis for', coinSymbol, coinName);
       const { data, error } = await supabase.functions.invoke('analyze-coin-news', {
         body: { coinName, coinSymbol }
       });
@@ -41,6 +41,7 @@ export const NewsAnalysis = ({ coinSymbol, coinName }: NewsAnalysisProps) => {
       if (error) throw error;
       return data;
     },
+    enabled: !!coinSymbol && !!coinName,
     staleTime: 5 * 60 * 1000,
     retry: 2,
   });
