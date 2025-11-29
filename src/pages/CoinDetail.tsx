@@ -139,7 +139,7 @@ const CoinDetail = () => {
           />
 
           <div className="lg:col-span-2">
-            <NewsAnalysis coinSymbol={coin.symbol} />
+            <NewsAnalysis coinSymbol={coin.symbol} coinName={coin.name} />
           </div>
         </div>
       </main>
